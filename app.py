@@ -16,11 +16,10 @@ gen_ai.configure(api_key=GOOGLE_API_KEY)
 model = gen_ai.GenerativeModel('gemini-pro')
 
 # Streamlit app layout
-st.title("📝 Content Quality Analyzer")
+st.title("Content Quality Analyzer")
 
 # User input
-st.markdown("### 📋 Paste your full content below for analysis:")
-user_content = st.text_area("Your content here", height=250)
+user_content = st.text_area("Paste your full content here", height=300)
 
 # Function to generate the analysis report
 def generate_report(content):
@@ -46,42 +45,36 @@ def generate_report(content):
        - What to include
        - What to remove
        - Areas to enhance
-
+    
     Format the report with clear headings and bullet points for easy readability.
     Start with the Overall Content Quality Score in large text.
     """
+    
     response = model.generate_content([prompt])
     return response.text
 
-# Analyze button and layout improvements
-col1, col2, col3 = st.columns([3, 1, 3])
+# Analyze button
+if st.button("Analyze Content"):
+    if user_content:
+        with st.spinner("Analyzing content..."):
+            analysis_report = generate_report(user_content)
+        
+        # Display the analysis report
+        st.subheader("Content Analysis Report")
+        
+        # Extract and display the overall score
+        score_line = analysis_report.split('\n')[0]
+        if "Overall Content Quality Score" in score_line:
+            score = score_line.split(':')[-1].strip()
+            st.markdown(f"<h1 style='text-align: center;'>Score: {score}</h1>", unsafe_allow_html=True)
+        
+        # Display the rest of the report
+        st.markdown(analysis_report)
+    else:
+        st.warning("Please enter some content to analyze.")
 
-with col2:
-    if st.button("🔍 Analyze Content"):
-        if user_content:
-            with st.spinner("Analyzing content..."):
-                analysis_report = generate_report(user_content)
-                
-            # Extract overall score
-            score_line = analysis_report.split('\n')[0]
-            if "Overall Content Quality Score" in score_line:
-                score = int(score_line.split(':')[-1].strip())
-                st.markdown(f"<h1 style='text-align: center;'>Score: {score}</h1>", unsafe_allow_html=True)
-                # Display progress bar for overall score
-                st.progress(score / 100)
-            
-            # Display the rest of the report in collapsible sections
-            with st.expander("📊 Full Content Analysis Report"):
-                st.markdown(analysis_report)
-        else:
-            st.warning("Please enter some content to analyze.")
+# Add some spacing
+st.write("\n\n")
 
-# Add a clear button to reset the input
-if st.button("🧹 Clear Content"):
-    user_content = ""
-
-# Additional information and instructions
-st.info("""
-🔎 This tool analyzes your content with AI and provides a comprehensive report covering SEO, storytelling, and overall quality. 
-Use the insights to refine your content strategy!
-""")
+# Additional information or instructions
+st.info("This tool uses AI to analyze your content and provide suggestions for improvement. The analysis covers various aspects including SEO, storytelling, and overall quality. Use the insights to enhance your content strategy.")
